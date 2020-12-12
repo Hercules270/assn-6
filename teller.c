@@ -11,47 +11,49 @@
 
 /*
  * deposit money into an account
+ * This method takes amount of money and deposits it into account balance.
  */
-int
-Teller_DoDeposit(Bank *bank, AccountNumber accountNum, AccountAmount amount)
+int Teller_DoDeposit(Bank *bank, AccountNumber accountNum, AccountAmount amount)
 {
   assert(amount >= 0);
 
-  DPRINTF('t', ("Teller_DoDeposit(account 0x%"PRIx64" amount %"PRId64")\n",
+  DPRINTF('t', ("Teller_DoDeposit(account 0x%" PRIx64 " amount %" PRId64 ")\n",
                 accountNum, amount));
 
   Account *account = Account_LookupByNumber(bank, accountNum);
 
-  if (account == NULL) {
+  if (account == NULL)
+  {
     return ERROR_ACCOUNT_NOT_FOUND;
   }
 
-  Account_Adjust(bank,account, amount, 1);
+  Account_Adjust(bank, account, amount, 1);
   return ERROR_SUCCESS;
 }
 
 /*
  * withdraw money from an account
  */
-int
-Teller_DoWithdraw(Bank *bank, AccountNumber accountNum, AccountAmount amount)
+int Teller_DoWithdraw(Bank *bank, AccountNumber accountNum, AccountAmount amount)
 {
   assert(amount >= 0);
 
-  DPRINTF('t', ("Teller_DoWithdraw(account 0x%"PRIx64" amount %"PRId64")\n",
+  DPRINTF('t', ("Teller_DoWithdraw(account 0x%" PRIx64 " amount %" PRId64 ")\n",
                 accountNum, amount));
 
   Account *account = Account_LookupByNumber(bank, accountNum);
 
-  if (account == NULL) {
+  if (account == NULL)
+  {
     return ERROR_ACCOUNT_NOT_FOUND;
   }
 
-  if (amount > Account_Balance(account)) {
+  if (amount > Account_Balance(account))
+  {
     return ERROR_INSUFFICIENT_FUNDS;
   }
 
-  Account_Adjust(bank,account, -amount, 1);
+  Account_Adjust(bank, account, -amount, 1);
 
   return ERROR_SUCCESS;
 }
@@ -59,28 +61,30 @@ Teller_DoWithdraw(Bank *bank, AccountNumber accountNum, AccountAmount amount)
 /*
  * do a tranfer from one account to another account
  */
-int
-Teller_DoTransfer(Bank *bank, AccountNumber srcAccountNum,
-                  AccountNumber dstAccountNum,
-                  AccountAmount amount)
+int Teller_DoTransfer(Bank *bank, AccountNumber srcAccountNum,
+                      AccountNumber dstAccountNum,
+                      AccountAmount amount)
 {
   assert(amount >= 0);
 
-  DPRINTF('t', ("Teller_DoTransfer(src 0x%"PRIx64", dst 0x%"PRIx64
-                ", amount %"PRId64")\n",
+  DPRINTF('t', ("Teller_DoTransfer(src 0x%" PRIx64 ", dst 0x%" PRIx64
+                ", amount %" PRId64 ")\n",
                 srcAccountNum, dstAccountNum, amount));
 
   Account *srcAccount = Account_LookupByNumber(bank, srcAccountNum);
-  if (srcAccount == NULL) {
+  if (srcAccount == NULL)
+  {
     return ERROR_ACCOUNT_NOT_FOUND;
   }
 
   Account *dstAccount = Account_LookupByNumber(bank, dstAccountNum);
-  if (dstAccount == NULL) {
+  if (dstAccount == NULL)
+  {
     return ERROR_ACCOUNT_NOT_FOUND;
   }
 
-  if (amount > Account_Balance(srcAccount)) {
+  if (amount > Account_Balance(srcAccount))
+  {
     return ERROR_INSUFFICIENT_FUNDS;
   }
 

@@ -1,12 +1,13 @@
 #ifndef _BANK_H
 #define _BANK_H
 
-
-
-typedef struct Bank {
+typedef struct Bank
+{
   unsigned int numberBranches;
-  struct       Branch  *branches;
-  struct       Report  *report;
+  struct Branch *branches;
+  struct Report *report;
+  pthread_mutex_t lock;
+  pthread_cond_t condition;
 } Bank;
 
 #include "account.h"
@@ -19,7 +20,5 @@ Bank *Bank_Init(int numBranches, int numAccounts, AccountAmount initAmount,
 
 int Bank_Validate(Bank *bank);
 int Bank_Compare(Bank *bank1, Bank *bank2);
-
-
 
 #endif /* _BANK_H */

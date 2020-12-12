@@ -2,16 +2,17 @@
 #define _ACCOUNT_H
 
 #include <stdint.h>
-
+#include <pthread.h>
 
 typedef uint64_t AccountNumber;
 typedef int64_t AccountAmount;
 
-typedef struct Account {
+typedef struct Account
+{
   AccountNumber accountNumber;
   AccountAmount balance;
+  pthread_mutex_t lock;
 } Account;
-
 
 Account *Account_LookupByNumber(struct Bank *bank, AccountNumber accountNum);
 

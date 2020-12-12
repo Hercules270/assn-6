@@ -9,36 +9,38 @@
 #include "error.h"
 #include "debug.h"
 
-
 #include "branch.h"
 
 /*
  * allocate and initialize each branch.
  */
-int
-Branch_Init(Bank *bank, int numBranches, int numAccounts,
-            AccountAmount initialAmount)
+int Branch_Init(Bank *bank, int numBranches, int numAccounts,
+                AccountAmount initialAmount)
 {
   bank->numberBranches = numBranches;
   bank->branches = malloc(numBranches * sizeof(Branch));
-  if (bank->branches == NULL) {
+  if (bank->branches == NULL)
+  {
     return -1;
   }
 
-  int accountsPerBranch = numAccounts /  numBranches;
+  int accountsPerBranch = numAccounts / numBranches;
 
-  for (int i = 0; i < numBranches; i++) {
+  for (int i = 0; i < numBranches; i++)
+  {
     Branch *branch = &bank->branches[i];
-
+    pthread_mutex_init(&(branch->lock), NULL);
     branch->branchID = i;
     branch->balance = 0;
     branch->numberAccounts = accountsPerBranch;
-    branch->accounts = (Account *) malloc(accountsPerBranch * sizeof(Account));
-    if (branch->accounts == NULL) {
+    branch->accounts = (Account *)malloc(accountsPerBranch * sizeof(Account));
+    if (branch->accounts == NULL)
+    {
       return -1;
     }
 
-    for (int a = 0; a < accountsPerBranch; a++) {
+    for (int a = 0; a < accountsPerBranch; a++)
+    {
       Account_Init(bank, &branch->accounts[a], a, i, initialAmount);
       branch->balance += branch->accounts[a].balance;
     }
@@ -50,33 +52,38 @@ Branch_Init(Bank *bank, int numBranches, int numAccounts,
 /*
  * update the balance of a branch.
  */
-int
-Branch_UpdateBalance(Bank *bank, BranchID branchID, AccountAmount change)
+int Branch_UpdateBalance(Bank *bank, BranchID branchID, AccountAmount change)
 {
-  assert(bank->branches);  Y;
-  if (branchID >= bank->numberBranches) {
+  assert(bank->branches);
+  Y;
+  pthread_mutex_lock(&(bank->branches[branchID].lock));
+  if (branchID >= bank->numberBranches)
+  {
     return -1;
   }
-  AccountAmount oldBalance = bank->branches[branchID].balance; Y;
-  bank->branches[branchID].balance = oldBalance + change; Y;
-
+  AccountAmount oldBalance = bank->branches[branchID].balance;
+  Y;
+  bank->branches[branchID].balance = oldBalance + change;
+  pthread_mutex_unlock(&(bank->branches[branchID].lock));
+  Y;
   return 0;
 }
 
 /*
  * get the balance of the branch
  */
-int
-Branch_Balance(Bank *bank, BranchID branchID, AccountAmount *balance)
+int Branch_Balance(Bank *bank, BranchID branchID, AccountAmount *balance)
 {
 
   assert(bank->branches);
 
-  if (branchID >= bank->numberBranches) {
+  if (branchID >= bank->numberBranches)
+  {
     return -1;
   }
 
-  *balance = bank->branches[branchID].balance;  Y;
+  *balance = bank->branches[branchID].balance;
+  Y;
   /* It should be the case that the balance of a branch matches the sum 
    * of all the accounts in the branch.  The following routine validates 
    * this assumption but is far too expense to run in normal operation. 
@@ -90,25 +97,27 @@ Branch_Balance(Bank *bank, BranchID branchID, AccountAmount *balance)
  * its balance equals the sum of balances of all accounts inside
  * the branch.
  */
-int
-Branch_Validate(Bank *bank, BranchID branchID)
+int Branch_Validate(Bank *bank, BranchID branchID)
 {
   assert(bank->branches);
 
-  if (branchID >= bank->numberBranches) {
+  if (branchID >= bank->numberBranches)
+  {
     return -1;
   }
 
   Branch *branch = &bank->branches[branchID];
   AccountAmount total = 0;
 
-  for (int a = 0; a < branch->numberAccounts; a++) {
+  for (int a = 0; a < branch->numberAccounts; a++)
+  {
     total += branch->accounts[a].balance;
   }
 
-  if (total != branch->balance) {
+  if (total != branch->balance)
+  {
     fprintf(stderr, "Branch balance mismatch. "
-            "Computer value is %"PRId64", but stored value is %"PRId64"\n",
+                    "Computer value is %" PRId64 ", but stored value is %" PRId64 "\n",
             total, branch->balance);
     return -1;
   }
@@ -119,40 +128,43 @@ Branch_Validate(Bank *bank, BranchID branchID)
 /*
  * Compare all data inside two branches to see if they are exactly the same.
  */
-int
-Branch_Compare(Branch *branch1, Branch *branch2)
+int Branch_Compare(Branch *branch1, Branch *branch2)
 {
   int err = 0;
 
   BranchID branch1ID = branch1->branchID;
   BranchID branch2ID = branch2->branchID;
 
-  if (branch1->numberAccounts !=  branch2->numberAccounts) {
-    fprintf(stderr, "Branches %"PRIu64" and %"PRIu64" mismatch in numberAccounts "
-            "(%d and %d, respectively).\n",
+  if (branch1->numberAccounts != branch2->numberAccounts)
+  {
+    fprintf(stderr, "Branches %" PRIu64 " and %" PRIu64 " mismatch in numberAccounts "
+                    "(%d and %d, respectively).\n",
             branch1ID, branch2ID,
             branch1->numberAccounts,
             branch2->numberAccounts);
     err = -1;
   }
 
-  if (branch1->balance != branch2->balance) {
-    fprintf(stderr, "Branches %"PRIu64" and %"PRIu64" mismatch in balance "
-            "(%"PRId64" and %"PRId64", respectively).\n",
+  if (branch1->balance != branch2->balance)
+  {
+    fprintf(stderr, "Branches %" PRIu64 " and %" PRIu64 " mismatch in balance "
+                    "(%" PRId64 " and %" PRId64 ", respectively).\n",
             branch1ID, branch2ID,
             branch1->balance, branch2->balance);
     err = -1;
   }
 
-  for (int i = 0; i < branch1->numberAccounts; i++) {
+  for (int i = 0; i < branch1->numberAccounts; i++)
+  {
 
     assert(branch1->accounts[i].accountNumber ==
            branch2->accounts[i].accountNumber);
 
-    if (branch1->accounts[i].balance != branch2->accounts[i].balance) {
+    if (branch1->accounts[i].balance != branch2->accounts[i].balance)
+    {
       fprintf(stderr,
-              "Branch %"PRIu64" and %"PRIu64" mismatch in account 0x%"PRIx64" balance "
-              "(%"PRId64" and %"PRId64", respectively).\n",
+              "Branch %" PRIu64 " and %" PRIu64 " mismatch in account 0x%" PRIx64 " balance "
+              "(%" PRId64 " and %" PRId64 ", respectively).\n",
               branch1ID, branch2ID,
               branch1->accounts[i].accountNumber,
               branch1->accounts[i].balance,
