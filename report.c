@@ -120,10 +120,12 @@ int Report_DoReport(Bank *bank, int workerNum)
   {
     //printf("#%d has done day and waiting\n", workerNum);
     pthread_cond_wait(&(bank->condition), &(bank->lock));
+    //printf("#%d has woke up and returns\n", workerNum);
+    pthread_mutex_unlock(&(bank->lock));
+    return 0;
   }
   //printf("#%d has done day and starts report\n", workerNum);
-  pthread_cond_broadcast(&(bank->condition));
-  pthread_mutex_unlock(&(bank->lock));
+
   Report *rpt = bank->report;
 
   assert(rpt);
@@ -140,23 +142,24 @@ int Report_DoReport(Bank *bank, int workerNum)
    */
   int err = Bank_Balance(bank, &rpt->dailyData[rpt->numReports].balance);
   Y;
-  pthread_mutex_lock(&(bank->lock));
 
   int oldNumReports = rpt->numReports;
   Y;
   rpt->numReports = oldNumReports + 1;
-  printf("Current reports num is %d\n", rpt->numReports);
-  pthread_mutex_unlock(&(bank->lock));
+  //printf("Current reports num is %d and worker is #%d\n", rpt->numReports, workerNum);
 
   Y;
-  pthread_mutex_lock(&(bank->lock));
-  stillWorking++;
-  if (stillWorking != numWorkers)
-  {
-    //printf("Thread #%d has finished report and waiting\n", workerNum);
-    pthread_cond_wait(&(bank->condition), &(bank->lock));
-  }
-  //printf("Thread #%d has finished report and continueing\n", workerNum);
+  // pthread_mutex_lock(&(bank->lock));
+  // stillWorking++;
+  // if (stillWorking != numWorkers)
+  // {
+  //   //printf("Thread #%d has finished report and waiting\n", workerNum);
+  //   pthread_cond_wait(&(bank->condition), &(bank->lock));
+  // }
+  // //printf("Thread #%d has finished report and continueing\n", workerNum);
+  // pthread_cond_broadcast(&(bank->condition));
+  // pthread_mutex_unlock(&(bank->lock));
+  stillWorking = numWorkers;
   pthread_cond_broadcast(&(bank->condition));
   pthread_mutex_unlock(&(bank->lock));
   return err;

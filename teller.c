@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <inttypes.h>
+#include <pthread.h>
 
 #include "teller.h"
 #include "account.h"
@@ -94,9 +95,25 @@ int Teller_DoTransfer(Bank *bank, AccountNumber srcAccountNum,
    * branch is 0.
    */
   int updateBranch = !Account_IsSameBranch(srcAccountNum, dstAccountNum);
+  // BranchID first;
+  // BranchID second;
 
+  // if (updateBranch)
+  // {
+  //   BranchID source = AccountNum_GetBranchID(srcAccountNum);
+  //   BranchID destination = AccountNum_GetBranchID(dstAccountNum);
+  //   first = (source < destination) ? source : destination;
+  //   second = (source < destination) ? destination : source;
+  //   pthread_mutex_lock(&(bank->branches[first].lock));
+  //   pthread_mutex_lock(&(bank->branches[second].lock));
+  // }
   Account_Adjust(bank, srcAccount, -amount, updateBranch);
   Account_Adjust(bank, dstAccount, amount, updateBranch);
 
+  // if (updateBranch)
+  // {
+  //   pthread_mutex_unlock(&(bank->branches[first].lock));
+  //   pthread_mutex_unlock(&(bank->branches[second].lock));
+  // }
   return ERROR_SUCCESS;
 }

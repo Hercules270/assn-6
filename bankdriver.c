@@ -273,6 +273,8 @@ static Bank *CreateBank(int testRunNum, int numWorkers, unsigned int initSeed, i
         testRunNum, numBranches, numAccounts, numCommands, numWorkers,
         reportingAmount, initSeed);
   }
+  printf("Create bank is done\n");
+
   if (testbankbalance)
   {
     actionControl |= ACTION_NO_FUNDS_FLOW;
@@ -280,9 +282,11 @@ static Bank *CreateBank(int testRunNum, int numWorkers, unsigned int initSeed, i
   Action_Init(numBranches, numAccounts, numCommands, maxTransactionSize,
               numWorkers,
               initSeed);
+  printf("Create bank is done2\n");
 
   bank = Bank_Init(numBranches, numAccounts, initialAmount, reportingAmount,
                    numWorkers);
+  printf("Create bank is done3\n");
 
   if (testbankbalance)
   {
@@ -293,6 +297,7 @@ static Bank *CreateBank(int testRunNum, int numWorkers, unsigned int initSeed, i
       testbankbalance = 0;
     }
   }
+  printf("Create bank is done4\n");
 
   return bank;
 }
@@ -344,6 +349,8 @@ static int MultipleWorkers(int numWorkers)
  */
 static void *Worker(void *threadarg)
 {
+  printf("Create bank is done5\n");
+
   int workerNum = *(int *)threadarg;
   int numBalanceErrors = 0;
   int noexit = 0;
@@ -357,6 +364,7 @@ static void *Worker(void *threadarg)
   DPRINTF('w', ("Worker(%d) starting\n", workerNum));
   while (1)
   {
+    printf("what is going on\n");
     Action action;
     int err = Action_GetNext(workerNum, &action, actionControl);
 
@@ -371,8 +379,11 @@ static void *Worker(void *threadarg)
     {
     case ACTION_DONE:
       err = -1;
+      printf("in action done\n");
+
       break;
     case ACTION_DEPOSIT:
+      printf("in action deposit\n");
       err = Teller_DoDeposit(bank, action.u.depwithArg.accountNum,
                              action.u.depwithArg.amount);
       if (err == ERROR_SUCCESS)
@@ -383,6 +394,8 @@ static void *Worker(void *threadarg)
 
       break;
     case ACTION_WITHDRAW:
+      printf("in action withdraw\n");
+
       err = Teller_DoWithdraw(bank, action.u.depwithArg.accountNum,
                               action.u.depwithArg.amount);
       if (err == ERROR_SUCCESS)
@@ -392,6 +405,8 @@ static void *Worker(void *threadarg)
       }
       break;
     case ACTION_TRANSFER:
+      printf("in action transfer\n");
+
       err = Teller_DoTransfer(bank,
                               action.u.transArg.srcAccountNum,
                               action.u.transArg.dstAccountNum,
@@ -406,11 +421,15 @@ static void *Worker(void *threadarg)
 
       break;
     case ACTION_BRANCH_BALANCE:
+      printf("in action branch balance\n");
+
       err = Branch_Balance(bank, action.u.branchArg.branchID, &balance);
       DPRINTF('b', ("Branch %" PRIu64 " balance is %" PRId64 "\n",
                     action.u.branchArg.branchID, balance));
       break;
     case ACTION_BANK_BALANCE:
+      printf("in action bank balance \n");
+
       err = Bank_Balance(bank, &balance);
       DPRINTF('b', ("Bank balance is %" PRId64 "\n", balance));
       if (testbankbalance && (fixedBankBalance != balance))
@@ -421,6 +440,8 @@ static void *Worker(void *threadarg)
       }
       break;
     case ACTION_REPORT:
+      printf("in action report\n");
+
       err = Report_DoReport(bank, action.u.reportArg.workerNum);
       if (err != 0)
       {
@@ -431,6 +452,8 @@ static void *Worker(void *threadarg)
       }
       break;
     default:
+      printf("in action default\n");
+
       fprintf(stderr, "Unknown action cmd %d\n", action.cmd);
       err = -1;
       break;
@@ -452,7 +475,6 @@ static void *Worker(void *threadarg)
  */
 static void TestBank(int testRunNumber, unsigned int initSeed, uint64_t totalTime)
 {
-  printf("Test starts here!!!!!!!!!!!!!!!!!!\n");
   Bank *bankmulti = bank;
   int balanceCmdErrors = 0;
 

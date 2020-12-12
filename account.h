@@ -2,7 +2,6 @@
 #define _ACCOUNT_H
 
 #include <stdint.h>
-#include <pthread.h>
 
 typedef uint64_t AccountNumber;
 typedef int64_t AccountAmount;
@@ -28,5 +27,7 @@ int Account_IsSameBranch(AccountNumber accountNum1, AccountNumber accountNum2);
 
 void Account_Init(Bank *bank, Account *account, int id, int branch,
                   AccountAmount initialAmount);
+
+//BranchID AccountNum_GetBranchID(AccountNumber accountNum);
 
 #endif /* _ACCOUNT_H */

@@ -3,6 +3,7 @@
 
 #include "bank.h"
 #include "account.h"
+#include "branch.h"
 
 
 int Teller_DoDeposit(Bank *bank, AccountNumber accountNum, AccountAmount amount);

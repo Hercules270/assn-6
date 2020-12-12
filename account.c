@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <pthread.h>
 
 #include "teller.h"
 #include "account.h"
