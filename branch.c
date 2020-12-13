@@ -83,10 +83,10 @@ int Branch_Balance(Bank *bank, BranchID branchID, AccountAmount *balance)
   {
     return -1;
   }
-  printf("in branch balance damn it 1\n");
+  // printf("in branch balance damn it 1\n");
   pthread_mutex_lock(&(bank->branches[branchID].lock));
   *balance = bank->branches[branchID].balance;
-  printf("in branch balance damn it 2\n");
+  // printf("in branch balance damn it 2\n");
 
   Y;
   /* It should be the case that the balance of a branch matches the sum 
@@ -95,7 +95,7 @@ int Branch_Balance(Bank *bank, BranchID branchID, AccountAmount *balance)
    */
   /* assert(Branch_Validate(bank, branchID) == 0);  */
   pthread_mutex_unlock(&(bank->branches[branchID].lock));
-  printf("in branch balance damn it 3\n");
+  // printf("in branch balance damn it 3\n");
 
   return 0;
 }
