@@ -10,7 +10,7 @@ typedef struct Account
 {
   AccountNumber accountNumber;
   AccountAmount balance;
-  pthread_mutex_t lock;
+  pthread_mutex_t lock; // This variable is used to synchronize changes in accounts balance.
 } Account;
 
 Account *Account_LookupByNumber(struct Bank *bank, AccountNumber accountNum);

@@ -33,7 +33,8 @@ typedef struct Report
 
 static AccountAmount reportingAmount; // Reporting threshold amount
 static int numWorkers;                // Number of worker threads in the system
-static int stillWorking;
+static int stillWorking;              // Number of currently working threads, that haven't reached ReporT_DoReport() function
+
 /*
  * Initialize the Report module of a bank.  Returns -1 on an error, 0 otherwise.
  */
@@ -114,8 +115,12 @@ int Report_Transfer(Bank *bank, int workerNum, AccountNumber accountNum,
  */
 int Report_DoReport(Bank *bank, int workerNum)
 {
-  pthread_mutex_lock(&(bank->lock));
-  stillWorking--;
+  pthread_mutex_lock(&(bank->lock)); // Current thread takes the to ensure only one thread goes through critical section
+  stillWorking--;                    // Dicrement stillWorking variable which indicates how many threads didn't reach this code
+
+  /* If working threads are still left wait until they finish 
+   * working and return cause last thread entering this function will do report.
+   */
   if (stillWorking > 0)
   {
     pthread_cond_wait(&(bank->condition), &(bank->lock));
@@ -132,20 +137,22 @@ int Report_DoReport(Bank *bank, int workerNum)
     // We've run out of report storage for the bank
     return -1;
   }
-  pthread_mutex_unlock(&(bank->lock));
+  pthread_mutex_unlock(&(bank->lock)); //We unlock bank lock here because we take bank's lock in Bank_Balance method
 
   /*
    * Store the overall bank balance for the report.
    */
   int err = Bank_Balance(bank, &rpt->dailyData[rpt->numReports].balance, -1);
   Y;
-  pthread_mutex_lock(&(bank->lock));
+
+  pthread_mutex_lock(&(bank->lock)); // We again lock bank's lock to avoid any race conditions on same memory.
 
   int oldNumReports = rpt->numReports;
   Y;
   rpt->numReports = oldNumReports + 1;
   Y;
 
+  // Last thread will do report. After that it will set stillWorking variable tonumWorkers and wake them up. Life goes on!
   stillWorking = numWorkers;
   pthread_cond_broadcast(&(bank->condition));
   pthread_mutex_unlock(&(bank->lock));

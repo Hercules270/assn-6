@@ -29,10 +29,7 @@ int testRunNum = 1;        /* Default test is test 1. */
 int actionControl = 0;     /* Control flags for the action generator. */
 unsigned int randSeed = 0; /* Random number generator seed - Default is use time */
 Bank *bank;
-sem_t globalSemaphore; /* Semaphore is used to join all threads before doing overnight report */
-int stillWorking;
-pthread_mutex_t globalLock;
-pthread_cond_t globalCondition;
+
 /*
  * Support for testing bank balance commands. 
  */
@@ -132,10 +129,6 @@ int main(int argc, char *argv[])
 
   if (numWorkers > 1)
   {
-    sem_init(&globalSemaphore, 0, numWorkers);
-    pthread_mutex_init(&globalLock, NULL);
-    pthread_cond_init(&globalCondition, NULL);
-    stillWorking = numWorkers;
     int err = MultipleWorkers(numWorkers);
     if (err < 0)
       exit(-1);
@@ -307,7 +300,6 @@ static int MultipleWorkers(int numWorkers)
   {
     pthread_t thread;
     int id;
-    sem_t *semaphore;
   } workers[MAX_WORKERS];
 
   pthread_attr_t attr;
@@ -320,7 +312,6 @@ static int MultipleWorkers(int numWorkers)
   for (int w = 0; w < numWorkers; w++)
   {
     workers[w].id = w;
-    workers[w].semaphore = &globalSemaphore;
     rc = pthread_create(&workers[w].thread, &attr,
                         Worker, (void *)&(workers[w].id));
     if (rc)
@@ -355,11 +346,9 @@ static void *Worker(void *threadarg)
     workerNum = 0;
     noexit = 1;
   }
-  int balanceCount = 0;
   DPRINTF('w', ("Worker(%d) starting\n", workerNum));
   while (1)
   {
-    balanceCount++;
     Action action;
     int err = Action_GetNext(workerNum, &action, actionControl);
 
@@ -410,11 +399,10 @@ static void *Worker(void *threadarg)
       break;
     case ACTION_BRANCH_BALANCE:
       err = Branch_Balance(bank, action.u.branchArg.branchID, &balance);
-      DPRINTF('@', ("Branch %" PRIu64 " balance is %" PRId64 "\n",
+      DPRINTF('b', ("Branch %" PRIu64 " balance is %" PRId64 "\n",
                     action.u.branchArg.branchID, balance));
       break;
     case ACTION_BANK_BALANCE:
-      balanceCount = 0;
       err = Bank_Balance(bank, &balance, workerNum);
       DPRINTF('b', ("Bank balance is %" PRId64 "\n", balance));
       if (testbankbalance && (fixedBankBalance != balance))

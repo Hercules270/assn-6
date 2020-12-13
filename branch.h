@@ -12,7 +12,7 @@ typedef struct Branch
   AccountAmount balance;
   int numberAccounts;
   Account *accounts;
-  pthread_mutex_t lock;
+  pthread_mutex_t lock; // This lock is used to avoid race conditions on branches balance.
 } Branch;
 
 int Branch_Balance(struct Bank *bank, BranchID branchID, AccountAmount *balance);

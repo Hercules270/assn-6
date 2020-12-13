@@ -79,7 +79,8 @@ int Branch_Balance(Bank *bank, BranchID branchID, AccountAmount *balance)
   {
     return -1;
   }
-  pthread_mutex_lock(&(bank->branches[branchID].lock));
+  
+  pthread_mutex_lock(&(bank->branches[branchID].lock)); // We lock branch to avoid race condition on branch.balance variable
   *balance = bank->branches[branchID].balance;
   pthread_mutex_unlock(&(bank->branches[branchID].lock));
 

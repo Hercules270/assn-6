@@ -42,21 +42,22 @@ int Bank_Balance(Bank *bank, AccountAmount *balance, int workerNum)
   assert(bank->branches);
   AccountAmount bankTotal = 0;
 
-  pthread_mutex_lock(&(bank->lock));
+  pthread_mutex_lock(&(bank->lock)); //Lock bank so that no cross branch transactions are possible while calculating balance
+
   for (unsigned int branch = 0; branch < bank->numberBranches; branch++)
   {
     AccountAmount branchBalance;
     int err = Branch_Balance(bank, bank->branches[branch].branchID, &branchBalance);
     if (err < 0)
     {
-      pthread_mutex_unlock(&(bank->lock));
+      pthread_mutex_unlock(&(bank->lock)); // Unlock lock in case of error to avoid deadlock.
       return err;
     }
     bankTotal += branchBalance;
   }
 
   *balance = bankTotal;
-  pthread_mutex_unlock(&(bank->lock));
+  pthread_mutex_unlock(&(bank->lock)); // Unlock bank.
   return 0;
 }
 
