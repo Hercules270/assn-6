@@ -284,9 +284,6 @@ static Bank *CreateBank(int testRunNum, int numWorkers, unsigned int initSeed, i
 
   bank = Bank_Init(numBranches, numAccounts, initialAmount, reportingAmount,
                    numWorkers);
-  AccountAmount curr;
-  int ss = Bank_Balance(bank, &curr, 1);
-  printf("Bank balance at start is %d\n", (int)curr);
 
   if (testbankbalance)
   {
@@ -377,11 +374,8 @@ static void *Worker(void *threadarg)
     {
     case ACTION_DONE:
       err = -1;
-      // printf("in action done\n");
-
       break;
     case ACTION_DEPOSIT:
-      // printf("in action deposit\n");
       err = Teller_DoDeposit(bank, action.u.depwithArg.accountNum,
                              action.u.depwithArg.amount);
       if (err == ERROR_SUCCESS)
@@ -392,8 +386,6 @@ static void *Worker(void *threadarg)
 
       break;
     case ACTION_WITHDRAW:
-      // printf("in action withdraw\n");
-
       err = Teller_DoWithdraw(bank, action.u.depwithArg.accountNum,
                               action.u.depwithArg.amount);
       if (err == ERROR_SUCCESS)
@@ -403,7 +395,6 @@ static void *Worker(void *threadarg)
       }
       break;
     case ACTION_TRANSFER:
-
       err = Teller_DoTransfer(bank,
                               action.u.transArg.srcAccountNum,
                               action.u.transArg.dstAccountNum,
@@ -418,26 +409,22 @@ static void *Worker(void *threadarg)
 
       break;
     case ACTION_BRANCH_BALANCE:
-      //printf("in action branch balance\n");
-
       err = Branch_Balance(bank, action.u.branchArg.branchID, &balance);
       DPRINTF('@', ("Branch %" PRIu64 " balance is %" PRId64 "\n",
                     action.u.branchArg.branchID, balance));
       break;
     case ACTION_BANK_BALANCE:
-      //printf("Balance count is %d \n", balanceCount);
       balanceCount = 0;
       err = Bank_Balance(bank, &balance, workerNum);
       DPRINTF('b', ("Bank balance is %" PRId64 "\n", balance));
       if (testbankbalance && (fixedBankBalance != balance))
       {
         numBalanceErrors++;
-        fprintf(stderr, "___________________________________Bank balance incorrect (%" PRId64 " != %" PRId64 ")\n",
+        fprintf(stderr, "Bank balance incorrect (%" PRId64 " != %" PRId64 ")\n",
                 balance, fixedBankBalance);
       }
       break;
     case ACTION_REPORT:
-      // printf("in action report\n");
 
       err = Report_DoReport(bank, action.u.reportArg.workerNum);
       if (err != 0)
@@ -449,8 +436,6 @@ static void *Worker(void *threadarg)
       }
       break;
     default:
-      // printf("in action default\n");
-
       fprintf(stderr, "Unknown action cmd %d\n", action.cmd);
       err = -1;
       break;

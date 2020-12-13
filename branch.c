@@ -60,12 +60,9 @@ int Branch_UpdateBalance(Bank *bank, BranchID branchID, AccountAmount change)
   {
     return -1;
   }
-  // pthread_mutex_lock(&(bank->branches[branchID].lock));
-
   AccountAmount oldBalance = bank->branches[branchID].balance;
   Y;
   bank->branches[branchID].balance = oldBalance + change;
-  // pthread_mutex_unlock(&(bank->branches[branchID].lock));
   Y;
   return 0;
 }

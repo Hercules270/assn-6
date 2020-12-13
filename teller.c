@@ -106,28 +106,17 @@ int Teller_DoTransfer(Bank *bank, AccountNumber srcAccountNum,
   int updateBranch = !Account_IsSameBranch(srcAccountNum, dstAccountNum);
   BranchID first;
   BranchID second;
-  if (updateBranch)
-  {
-    //printf("Different branches Account transfer from %" PRIu64 " to %" PRIu64 "\n", srcAccountNum, dstAccountNum);
-  }
-  else
-  {
-    //printf("Same branches Account transfer from %" PRIu64 " to %" PRIu64 "\n", srcAccountNum, dstAccountNum);
-  }
+
   if (updateBranch)
   {
     BranchID source = getBranchID(srcAccountNum);
     BranchID destination = getBranchID(dstAccountNum);
     first = (source < destination) ? source : destination;
     second = (source < destination) ? destination : source;
-    // printf("Before bank lock in teller.c Branche transfer from %" PRIu64 " to %" PRIu64 "!!! of from account %" PRIu64 " to %" PRIu64 " amount:%" PRId64 "\n", source, destination, srcAccountNum, dstAccountNum, amount);
 
     pthread_mutex_lock(&(bank->lock));
-    // printf("AFter bank lock in teller.c Branche transfer from %" PRIu64 " to %" PRIu64 "!!! of from account %" PRIu64 " to %" PRIu64 " amount:%" PRId64 "\n", source, destination, srcAccountNum, dstAccountNum, amount);
-
     pthread_mutex_lock(&(bank->branches[first].lock));
     pthread_mutex_lock(&(bank->branches[second].lock));
-    //printf("Locked first %" PRIu64 " and second %" PRIu64 "\n", first, second);
   }
   Account_Adjust(bank, srcAccount, -amount, updateBranch);
   Account_Adjust(bank, dstAccount, amount, updateBranch);
@@ -135,14 +124,9 @@ int Teller_DoTransfer(Bank *bank, AccountNumber srcAccountNum,
   if (updateBranch)
   {
     pthread_mutex_unlock(&(bank->lock));
-    // printf("AFter bank unlock in teller.c\n");
-
     pthread_mutex_unlock(&(bank->branches[first].lock));
     pthread_mutex_unlock(&(bank->branches[second].lock));
-
-    //printf("UNLOCKED first %" PRIu64 " and second %" PRIu64 "\n", first, second);
   }
-  //printf("Transfer from %" PRIu64 " to %" PRIu64 " ENDED SUCCESSFULLY\n", srcAccountNum, dstAccountNum);
 
   return ERROR_SUCCESS;
 }
