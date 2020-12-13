@@ -56,13 +56,12 @@ int Branch_UpdateBalance(Bank *bank, BranchID branchID, AccountAmount change)
 {
   assert(bank->branches);
   Y;
-  pthread_mutex_lock(&(bank->branches[branchID].lock));
   if (branchID >= bank->numberBranches)
   {
-    pthread_mutex_unlock(&(bank->branches[branchID].lock));
-
     return -1;
   }
+  pthread_mutex_lock(&(bank->branches[branchID].lock));
+
   AccountAmount oldBalance = bank->branches[branchID].balance;
   Y;
   bank->branches[branchID].balance = oldBalance + change;
@@ -83,10 +82,9 @@ int Branch_Balance(Bank *bank, BranchID branchID, AccountAmount *balance)
   {
     return -1;
   }
-  // printf("in branch balance damn it 1\n");
   pthread_mutex_lock(&(bank->branches[branchID].lock));
   *balance = bank->branches[branchID].balance;
-  // printf("in branch balance damn it 2\n");
+  pthread_mutex_unlock(&(bank->branches[branchID].lock));
 
   Y;
   /* It should be the case that the balance of a branch matches the sum 
@@ -94,9 +92,6 @@ int Branch_Balance(Bank *bank, BranchID branchID, AccountAmount *balance)
    * this assumption but is far too expense to run in normal operation. 
    */
   /* assert(Branch_Validate(bank, branchID) == 0);  */
-  pthread_mutex_unlock(&(bank->branches[branchID].lock));
-  // printf("in branch balance damn it 3\n");
-
   return 0;
 }
 

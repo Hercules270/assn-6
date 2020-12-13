@@ -284,6 +284,9 @@ static Bank *CreateBank(int testRunNum, int numWorkers, unsigned int initSeed, i
 
   bank = Bank_Init(numBranches, numAccounts, initialAmount, reportingAmount,
                    numWorkers);
+  AccountAmount curr;
+  int ss = Bank_Balance(bank, &curr);
+  printf("Bank balance at start is %d\n", (int)curr);
 
   if (testbankbalance)
   {
@@ -359,7 +362,6 @@ static void *Worker(void *threadarg)
   DPRINTF('w', ("Worker(%d) starting\n", workerNum));
   while (1)
   {
-    // printf("what is going on\n");
     Action action;
     int err = Action_GetNext(workerNum, &action, actionControl);
 
@@ -400,7 +402,6 @@ static void *Worker(void *threadarg)
       }
       break;
     case ACTION_TRANSFER:
-      //printf("in action transfer\n");
 
       err = Teller_DoTransfer(bank,
                               action.u.transArg.srcAccountNum,
@@ -419,7 +420,7 @@ static void *Worker(void *threadarg)
       //printf("in action branch balance\n");
 
       err = Branch_Balance(bank, action.u.branchArg.branchID, &balance);
-      DPRINTF('b', ("Branch %" PRIu64 " balance is %" PRId64 "\n",
+      DPRINTF('@', ("Branch %" PRIu64 " balance is %" PRId64 "\n",
                     action.u.branchArg.branchID, balance));
       break;
     case ACTION_BANK_BALANCE:

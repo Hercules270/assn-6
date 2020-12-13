@@ -70,12 +70,14 @@ void Account_Adjust(Bank *bank, Account *account, AccountAmount amount,
                     int updateBranch)
 {
   pthread_mutex_lock(&(account->lock));
-  account->balance = Account_Balance(account) + amount;
+
+  account->balance += amount;
+  pthread_mutex_unlock(&(account->lock));
+
   if (updateBranch)
   {
     Branch_UpdateBalance(bank, AccountNum_GetBranchID(account->accountNumber), amount);
   }
-  pthread_mutex_unlock(&(account->lock));
   Y;
 }
 /*
@@ -83,7 +85,11 @@ void Account_Adjust(Bank *bank, Account *account, AccountAmount amount,
  */
 AccountAmount Account_Balance(Account *account)
 {
+  pthread_mutex_lock(&(account->lock));
+
   AccountAmount balance = account->balance;
+  pthread_mutex_unlock(&(account->lock));
+
   Y;
   return balance;
 }

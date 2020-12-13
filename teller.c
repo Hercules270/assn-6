@@ -59,6 +59,12 @@ int Teller_DoWithdraw(Bank *bank, AccountNumber accountNum, AccountAmount amount
   return ERROR_SUCCESS;
 }
 
+BranchID getBranchID(AccountNumber accountNum)
+{
+  Y;
+  return (BranchID)(accountNum >> 32);
+}
+
 /*
  * do a tranfer from one account to another account
  */
@@ -95,17 +101,26 @@ int Teller_DoTransfer(Bank *bank, AccountNumber srcAccountNum,
    * branch is 0.
    */
   int updateBranch = !Account_IsSameBranch(srcAccountNum, dstAccountNum);
-  // BranchID first;
-  // BranchID second;
+  BranchID first;
+  BranchID second;
+  // if (updateBranch)
+  //   printf("Different branches Account transfer from %" PRIu64 " to %" PRIu64 "\n", srcAccountNum, dstAccountNum);
+  // else
+  //   printf("Same branches Account transfer from %" PRIu64 " to %" PRIu64 "\n", srcAccountNum, dstAccountNum);
 
   // if (updateBranch)
   // {
-  //   BranchID source = AccountNum_GetBranchID(srcAccountNum);
-  //   BranchID destination = AccountNum_GetBranchID(dstAccountNum);
+
+  //   BranchID source = getBranchID(srcAccountNum);
+  //   BranchID destination = getBranchID(dstAccountNum);
   //   first = (source < destination) ? source : destination;
   //   second = (source < destination) ? destination : source;
+  //   printf("Branche transfer from %" PRIu64 " to %" PRIu64 "!!! of from account %" PRIu64 " to %" PRIu64 "\n",
+  //          source, destination, srcAccountNum, dstAccountNum);
+
   //   pthread_mutex_lock(&(bank->branches[first].lock));
   //   pthread_mutex_lock(&(bank->branches[second].lock));
+  //   printf("Locked first %" PRIu64 " and second %" PRIu64 "\n", first, second);
   // }
   Account_Adjust(bank, srcAccount, -amount, updateBranch);
   Account_Adjust(bank, dstAccount, amount, updateBranch);
@@ -114,6 +129,9 @@ int Teller_DoTransfer(Bank *bank, AccountNumber srcAccountNum,
   // {
   //   pthread_mutex_unlock(&(bank->branches[first].lock));
   //   pthread_mutex_unlock(&(bank->branches[second].lock));
+  //   printf("UNLOCKED first %" PRIu64 " and second %" PRIu64 "\n", first, second);
   // }
+  // printf("Transfer from %" PRIu64 " to %" PRIu64 " ENDED SUCCESSFULLY\n", srcAccountNum, dstAccountNum);
+
   return ERROR_SUCCESS;
 }
