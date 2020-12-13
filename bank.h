@@ -12,7 +12,7 @@ typedef struct Bank
 
 #include "account.h"
 
-int Bank_Balance(Bank *bank, AccountAmount *balance);
+int Bank_Balance(Bank *bank, AccountAmount *balance, int workerNum);
 
 Bank *Bank_Init(int numBranches, int numAccounts, AccountAmount initAmount,
                 AccountAmount reportingAmount,

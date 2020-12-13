@@ -37,18 +37,22 @@ Bank *Bank_Init(int numBranches, int numAccounts, AccountAmount initalAmount,
  * get the balance of the entire bank by adding up all the balances in
  * each branch.
  */
-int Bank_Balance(Bank *bank, AccountAmount *balance)
+int Bank_Balance(Bank *bank, AccountAmount *balance, int workerNum)
 {
   assert(bank->branches);
-  // pthread_mutex_lock(&(bank->lock));
   AccountAmount bankTotal = 0;
+  // printf("In bank balance before lock of thread #%d\n", workerNum);
+  pthread_mutex_lock(&(bank->lock));
+  // printf("In bank balance after lock of thread #%d\n", workerNum);
+
   for (unsigned int branch = 0; branch < bank->numberBranches; branch++)
   {
     AccountAmount branchBalance;
     int err = Branch_Balance(bank, bank->branches[branch].branchID, &branchBalance);
     if (err < 0)
     {
-      //pthread_mutex_unlock(&(bank->lock));
+      pthread_mutex_unlock(&(bank->lock));
+      // printf("Error In bank balance after unlock of thread #%d\n", workerNum);
 
       return err;
     }
@@ -56,7 +60,8 @@ int Bank_Balance(Bank *bank, AccountAmount *balance)
   }
 
   *balance = bankTotal;
-  // pthread_mutex_unlock(&(bank->lock));
+  pthread_mutex_unlock(&(bank->lock));
+  // printf("In bank balance after unlock of thread #%d\n", workerNum);
 
   return 0;
 }

@@ -136,12 +136,14 @@ int Report_DoReport(Bank *bank, int workerNum)
     // We've run out of report storage for the bank
     return -1;
   }
+  pthread_mutex_unlock(&(bank->lock));
 
   /*
    * Store the overall bank balance for the report.
    */
-  int err = Bank_Balance(bank, &rpt->dailyData[rpt->numReports].balance);
+  int err = Bank_Balance(bank, &rpt->dailyData[rpt->numReports].balance, -1);
   Y;
+  pthread_mutex_lock(&(bank->lock));
 
   int oldNumReports = rpt->numReports;
   Y;

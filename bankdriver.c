@@ -285,12 +285,12 @@ static Bank *CreateBank(int testRunNum, int numWorkers, unsigned int initSeed, i
   bank = Bank_Init(numBranches, numAccounts, initialAmount, reportingAmount,
                    numWorkers);
   AccountAmount curr;
-  int ss = Bank_Balance(bank, &curr);
+  int ss = Bank_Balance(bank, &curr, 1);
   printf("Bank balance at start is %d\n", (int)curr);
 
   if (testbankbalance)
   {
-    int err = Bank_Balance(bank, &fixedBankBalance);
+    int err = Bank_Balance(bank, &fixedBankBalance, 1);
     if (err < 0)
     {
       fprintf(stderr, "Error computing Bank_Balance - balance check not performed.\n");
@@ -358,10 +358,11 @@ static void *Worker(void *threadarg)
     workerNum = 0;
     noexit = 1;
   }
-
+  int balanceCount = 0;
   DPRINTF('w', ("Worker(%d) starting\n", workerNum));
   while (1)
   {
+    balanceCount++;
     Action action;
     int err = Action_GetNext(workerNum, &action, actionControl);
 
@@ -424,14 +425,14 @@ static void *Worker(void *threadarg)
                     action.u.branchArg.branchID, balance));
       break;
     case ACTION_BANK_BALANCE:
-      // printf("in action bank balance \n");
-
-      err = Bank_Balance(bank, &balance);
+      //printf("Balance count is %d \n", balanceCount);
+      balanceCount = 0;
+      err = Bank_Balance(bank, &balance, workerNum);
       DPRINTF('b', ("Bank balance is %" PRId64 "\n", balance));
       if (testbankbalance && (fixedBankBalance != balance))
       {
         numBalanceErrors++;
-        fprintf(stderr, "Bank balance incorrect (%" PRId64 " != %" PRId64 ")\n",
+        fprintf(stderr, "___________________________________Bank balance incorrect (%" PRId64 " != %" PRId64 ")\n",
                 balance, fixedBankBalance);
       }
       break;
